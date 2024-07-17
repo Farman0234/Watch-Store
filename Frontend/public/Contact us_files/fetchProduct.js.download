@@ -1,0 +1,171 @@
+const fetchProduct = async (handle, storefrontApi, shopifyDomain) => {
+  //   if (aco_allProducts) {
+  //     let product = aco_allProducts.get(handle);
+  //     if (product) return filterProduct(product);
+  //   }
+
+  const country = window.Shopify.country;
+  const data = {
+    query: `#graphql
+    query ProductPricing @inContext(country: ${country}){
+      product(handle: "${handle}") {  
+        id
+        title
+        descriptionHtml
+        vendor
+        availableForSale
+        totalInventory
+        createdAt
+        handle
+        productType
+        publishedAt
+        tags
+        featuredImage {
+          url
+        }
+        variants(first: 250) {
+          edges {
+            node {
+              id
+              availableForSale
+              title
+              quantityAvailable
+              price {
+                amount
+                currencyCode
+              }
+              image {
+                altText
+                url
+                id
+              }
+              compareAtPrice {
+                amount,
+                currencyCode
+              }
+            }
+          }
+        }
+        images(first: 250) {
+          edges {
+            node {
+              id
+              url
+              altText
+            }
+          }
+        }
+        collections(first: 250) {
+          edges {
+            node {
+              id
+              handle
+              title
+            }
+          }
+        }
+        priceRange {
+          maxVariantPrice {
+            amount
+            currencyCode
+          }
+          minVariantPrice {
+            amount
+            currencyCode
+          }
+        }
+        compareAtPriceRange {
+          maxVariantPrice {
+            amount
+            currencyCode
+          }
+          minVariantPrice {
+            amount
+            currencyCode
+          }
+        }
+      }
+    }
+    `,
+  };
+
+  const response = await axios.post(
+    `https://${shopifyDomain}/api/2023-07/graphql.json`,
+    data,
+    {
+      headers: {
+        "X-Shopify-Storefront-Access-Token": storefrontApi,
+        "Content-Type": "application/json",
+      },
+    }
+  );
+  const productDetails = response.data.data.product;
+  if (!productDetails) return;
+  let fetchedProduct = {
+    ...productDetails,
+    id: productDetails.id.replace("gid://shopify/Product/", ""),
+    collections: productDetails.collections.edges.map((el) => el.node),
+    images: productDetails.images.edges.map((el) => el.node),
+    variants: productDetails.variants.edges.map((el) => el.node),
+    first_variant: {
+      id: productDetails.variants.edges[0].node.id,
+    },
+  };
+  return filterProduct(fetchedProduct);
+};
+
+function filterProduct(product) {
+  return {
+    product_id: parseInt(product.id),
+    product_handle: product.handle,
+    product_type: product.productType,
+    product_vendor: product.vendor,
+    product_tags: product.tags,
+    product_collections: product.collections.map((el) => parseInt(el.id.split("/").pop())),
+    product_price: parseInt(product.priceRange.minVariantPrice.amount),
+    product_compare_at_price: parseInt(
+      product.compareAtPriceRange.minVariantPrice.amount
+    ),
+    product_created_at: product.createdAt,
+    product_published_at: product.publishedAt,
+    product_available: product.availableForSale,
+    product_first_variant:
+      product.first_variant?.id.replace("gid://shopify/ProductVariant/", "") ||
+      product.variants[0].id.replace("gid://shopify/ProductVariant/", ""),
+    product_variants: product.variants.map((el) => {
+      return {
+        variants_id: parseInt(
+          el.id.replace("gid://shopify/ProductVariant/", "")
+        ),
+        variants_price: parseInt(el.price.amount),
+        variants_available: el.availableForSale,
+        variants_compare_at_price: el.compareAtPrice?.amount
+          ? parseInt(el.compareAtPrice.amount)
+          : null,
+        variants_inventory_quantity: parseInt(el.quantityAvailable),
+      };
+    }),
+  };
+}
+
+// [{
+//     "product_id":8106096165085,
+//     "product_handle":"lombre-des-travel",
+//     "product_type":"Perfume",
+//     "product_vendor": "Hermès",
+//     "product_tags": ["8ml","Black Membership","Black Tea","BU","Designer","Exclusive","Incense","Tonka Bean","Unisex"],
+//     "product_collections":[418150482141,418260451549,417532117213,419577888989,418259632349,418268119261,417661419741,418268446941,417661485277,418261041373,417554333917,418167390429,419581722845,419575267549,418146353373,418311700701,417636188381],
+//     "product_price":"1699",
+//     "product_compare_at_price":"",
+//     "product_created_at":"2023-07-12 23:20",
+//     "product_published_at":"2023-07-12 23:20",
+//     "product_available":true,
+//     "product_first_variant":43956921008349,
+//     "product_variants":[{
+//             "variants_id":43956921008349,
+//             "variants_price":1699,
+//             "variants_available":true,
+//             "variants_compare_at_price":"",
+//             "variants_inventory_quantity":9
+//             }]
+// }]

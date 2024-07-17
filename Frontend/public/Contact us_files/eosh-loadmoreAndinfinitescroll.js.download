@@ -1,0 +1,30 @@
+var eoshDomain = Shopify.shop;
+
+if(eoshDomain=="glamour-goddess-2744.myshopify.com"){
+    IsNavigationReady();
+} else {
+    var removePagination = document.querySelectorAll("nav.pagination, div.pagination-wrapper, .pagination-border-top, #collection-pagination, .gf_collection-paginator-wrapper, .pagination-page, .boost-pfs-filter-bottom-pagination, .toolbar-bottom, .Pagination Text--subdued, .pagination, .pagination-border-top, .pagination-custom, .Pagination, .justify-content-center, .collection-pagination, .box__paginate, .paginate, .pagination--container, #pagination, .collection--pagination, div.pagination,div.pagination__list,nav.pagination__nav,ul.t4s-pagination__list");
+    if(window.location.href.indexOf("collections")>-1 || (window.location.href.indexOf("a/search") > -1 && Shopify.shop=="perkele-shop.myshopify.com") || (window.location.href.indexOf("search")>-1 && (Shopify.shop=="thisisneverthatstore.myshopify.com" || Shopify.shop=="thisisneverthat-intl.myshopify.com" || Shopify.shop == "passarostore.myshopify.com" || Shopify.shop=="funkydecors.myshopify.com" || Shopify.shop=="the-up-shop-collection.myshopify.com") ))
+    {
+        if(typeof(removePagination[0])!="undefined"){
+            if(eoshDomain=="aziodesign.myshopify.com"){
+                removePagination[3].style.display="none";
+            } else if(eoshDomain=="vintedge-modern.myshopify.com"){
+                removePagination[0].style.display="none";
+                removePagination[1].style.display="none";
+            } else {
+                removePagination[0].style.display="none"; 
+            }
+        }
+    }
+}
+
+function hideNavigation(){
+    document.querySelectorAll("nav.pagination")[0].style.display="none";
+}
+function IsNavigationReady(e = 0) {
+    (document.querySelectorAll("nav.pagination").length==1) ?  hideNavigation() : 
+      (e++, setTimeout(() => {
+        console.log("Waiting for Navigation"), IsNavigationReady(e);
+      }, 1e3));
+}

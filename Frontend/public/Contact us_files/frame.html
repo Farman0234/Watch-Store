@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<!-- saved from url=(0033)https://cdn.fodane.app/frame.html -->
+<html lang="en"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+  
+  <title>Fodane.app iframe</title>
+</head>
+
+<body>
+  <script>
+    // addEventListener support for IE8
+    const FODANE_bindEvent = (element, eventName, eventHandler) => {
+      if (element.addEventListener) {
+        element.addEventListener(eventName, eventHandler, false);
+      } else if (element.attachEvent) {
+        element.attachEvent("on" + eventName, eventHandler);
+      }
+    };
+    const FODANE_getUrlParam = (sParam) => {
+      var sPageURL = window.location.search.substring(1),
+        sURLVariables = sPageURL.split("&"),
+        sParameterName,
+        i;
+      for (i = 0; i < sURLVariables.length; i++) {
+        sParameterName = sURLVariables[i].split("=");
+        if (sParameterName[0] === sParam) {
+          return sParameterName[1] === undefined
+            ? true
+            : decodeURIComponent(sParameterName[1]);
+        }
+      }
+    };
+    const __worker = new Worker("webWorker.js");
+    
+    // Send a message to the parent
+    var sendMessage = function (msg) {
+      // Make sure you are sending a string, and to stringify JSON
+      window.parent.postMessage(msg, "*");
+    };
+
+    //Send errors in web worker (worker.js)
+    __worker.onerror = function (errorEvent) {
+      sendMessage(JSON.stringify({ dataType: "error", data: errorEvent.message }));
+    }
+
+    // Listen to messages from parent window (bundle.js)
+    FODANE_bindEvent(window, "message", function (e) {
+      __worker.postMessage(e.data); //Sending message to Worker
+    });
+
+    // Listen to worker (worker.js)
+    FODANE_bindEvent(__worker, "message", function (e) {
+      let __data = e.data;
+      sendMessage(__data); //Sending message to bundle.js
+    });
+
+  </script>
+
+
+
+</body></html>

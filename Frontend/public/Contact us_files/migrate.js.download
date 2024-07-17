@@ -1,0 +1,515 @@
+let fetchedFont = new Set();
+let fetchFailedSvg = new Set();
+const svgElementCreator = async (svgUrl, svgStyle) => {
+  let svg = "";
+  const svgFromSession = sessionStorage.getItem(`svg-${svgUrl}`);
+  if (!svgFromSession) {
+    const data = await fetch(`https://cdn.labeler.apps.acowebs.com/${svgUrl}`);
+    if (!data.ok) {
+      fetchFailedSvg.add(svgUrl);
+      return;
+    }
+    svg = await data.text();
+    sessionStorage.setItem(`svg-${svgUrl}`, svg);
+  } else {
+    svg = svgFromSession;
+  }
+  const parser = new DOMParser();
+  const doc = parser.parseFromString(svg, "image/svg+xml");
+  const svgElement = doc.querySelector("svg");
+  if (svgElement) {
+    svgElement.style.setProperty("width", "100%");
+    svgElement.style.setProperty("height", "100%");
+    if (svgStyle) {
+      if (svgStyle.shape) {
+        svgStyle.shape.forEach((shape, index) => {
+          if (!shape.key) console.log("shape key is missing", shape, index);
+          let svgText = svgElement.querySelectorAll(`#${shape.key}`);
+          svgText.forEach((el) => {
+            el?.setAttribute("fill", shape.fill);
+          });
+        });
+      }
+      if (svgStyle.text) {
+        svgStyle.text.forEach((text) => {
+          let svgText = svgElement.querySelectorAll(`#${text.key}`);
+          svgText.forEach((el) => {
+            el?.setAttribute("x", text.x);
+            el?.setAttribute("y", text.y);
+            el?.setAttribute("fill", text.fill);
+            el?.setAttribute("font-size", text.fontSize);
+            el?.setAttribute("transform", text.transform);
+            if (!fetchedFont.has(text.fontFamily)) {
+              let fontLink = document.createElement("link");
+              fontLink.href = `https://fonts.googleapis.com/css2?family=${text.fontFamily}&display=swap`;
+              fontLink.rel = "stylesheet";
+              document.head.appendChild(fontLink);
+              fetchedFont.add(text.fontFamily);
+              el?.setAttribute("font-family", text.fontFamily);
+            } else {
+              el?.setAttribute("font-family", text.fontFamily);
+            }
+            el?.setAttribute("font-weight", text.fontWeight);
+            el?.setAttribute("letter-spacing", text.letterSpacing);
+            el && (el.textContent = text.text);
+          });
+        });
+      }
+    }
+  }
+  return svgElement;
+};
+
+async function svgToBlob(svgElement) {
+  return new Promise((resolve) => {
+    const svgString = new XMLSerializer().serializeToString(svgElement);
+    const blob = new Blob([svgString], { type: "image/svg+xml" });
+    resolve(blob);
+  });
+}
+
+async function blobToImage(blob) {
+  return new Promise((resolve) => {
+    const imageUrl = URL.createObjectURL(blob);
+    const img = new Image();
+    img.onload = function () {
+      resolve(img);
+    };
+    img.src = imageUrl;
+  });
+}
+
+const svgBlobUrl = async (svgUrl, svgStyle) => {
+  const svgElement = await svgElementCreator(svgUrl, svgStyle);
+  svgElement.style.width = '100%';
+  svgElement.style.height = '100%';
+  const blob = await svgToBlob(svgElement);
+  const image = await blobToImage(blob);
+  return image.src;
+};
+
+function convertToSpecifiedFormat(date, time) {
+  const months = [
+    "Jan",
+    "Feb",
+    "Mar",
+    "Apr",
+    "May",
+    "Jun",
+    "Jul",
+    "Aug",
+    "Sep",
+    "Oct",
+    "Nov",
+    "Dec",
+  ];
+
+  const [year, month, day] = date.split("-");
+  const [hours, minutes] = time.split(":");
+
+  const d = new Date(
+    Date.UTC(
+      parseInt(year),
+      parseInt(month) - 1,
+      parseInt(day),
+      parseInt(hours),
+      parseInt(minutes)
+    )
+  );
+
+  const dayOfWeek = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"][
+    d.getUTCDay()
+  ];
+  const monthName = months[d.getUTCMonth()];
+
+  const formattedDate = `${dayOfWeek}, ${d.getUTCDate()} ${monthName} ${d.getUTCFullYear()} ${d.getUTCHours()}:${d.getUTCMinutes()}:${d.getUTCSeconds()} GMT`;
+  return formattedDate;
+}
+
+function ruleGenerator(existingRule) {
+  let rule = existingRule.selected.find(
+    (el) => el !== "scheduler" && el !== "countryRestriction"
+  );
+  switch (rule) {
+    case "allProducts":
+      return {
+        key: "allProducts",
+        type: "none",
+        discountProducts: [],
+      };
+    case "specificProducts":
+      return {
+        key: "specificProducts",
+        type: "picker",
+        conditions: "",
+        queryField: "",
+        products: existingRule.specificProducts.map((el) =>
+          el.split("/").pop()
+        ),
+      };
+    case "specificVariants":
+      return {
+        key: "specificVariants",
+        type: "picker",
+        conditions: "",
+        queryField: "",
+        products: existingRule.specificVariants.map((el) => {
+          return {
+            id: el.id.split("/").pop(),
+            variants: el.variants?.map((variant) => variant.id.split("/").pop()) || [],
+          };
+        }),
+      };
+    case "specificCollection":
+      return {
+        key: "specificCollection",
+        type: "collectionShopifyIds",
+        queryField: "collectionShopifyIds",
+        collectionType:
+          existingRule.specificCollection.includeCollections.length > 0
+            ? ["include"]
+            : ["exclude"],
+        collectionShopifyIds:
+          existingRule.specificCollection.includeCollections.length > 0
+            ? existingRule.specificCollection.includeCollections
+            : existingRule.specificCollection.excludeCollections,
+      };
+    case "specificTags":
+      return {
+        key: "specificTags",
+        type: "multiTagSelect",
+        conditions: "substring",
+        queryField: "tags",
+        excludedTags: existingRule.specificTags.excludeTags,
+        multiTagSelect: existingRule.specificTags.includeTags,
+      };
+    case "productVendor":
+      return {
+        key: "productVendor",
+        type: "multiVendorSelect",
+        conditions: "in",
+        queryField: "vendor",
+        multiVendorSelect: existingRule.productVendor.includeVendors,
+      };
+    case "priceRange":
+      return {
+        key: "priceRange",
+        type: "minMax",
+        minMax: {
+          max: existingRule.priceRange.max,
+          min: existingRule.priceRange.min,
+        },
+      };
+
+    case "inStock":
+      return {
+        key: "inStock",
+        type: "stock",
+        stock: "0",
+        conditions: "gt",
+        queryField: "totalInventory",
+      };
+    case "productType":
+      return {
+        key: "productType",
+        type: "multiTypeSelect",
+        conditions: "in",
+        queryField: "productType",
+        multiTypeSelect: existingRule.productType.includeTypes,
+      };
+
+    case "lowStock":
+      return {
+        key: "lowStock",
+        type: "count",
+        count: existingRule.lowStock,
+        conditions: "lte",
+        queryField: "totalInventory",
+      };
+
+    case "outOfStock":
+      return {
+        key: "outOfStock",
+        type: "stock",
+        stock: "0",
+        conditions: "lte",
+        queryField: "totalInventory",
+      };
+
+    case "publishedDate":
+      return {
+        key: "publishedDate",
+        type: "fromTo",
+        fromTo: {
+          to: existingRule.publishedDate.to,
+          from: existingRule.publishedDate.from,
+        },
+      };
+
+    case "newArrivals":
+      return {
+        key: "newArrivals",
+        type: "dayCount",
+        conditions: "gt",
+        dayCount: existingRule.newArrivals,
+        queryField: "productsCreatedAt",
+      };
+
+    case "comingSoon":
+      return {
+        key: "comingSoon",
+        type: "dayCount",
+        dayCount: existingRule.comingSoon,
+        conditions: "gt",
+        queryField: "productsCreatedAt",
+      };
+  }
+}
+
+const oldDataCreator = async () => {
+  let data = labelerCdnData;
+  let oldData = {
+    version: "v2",
+    subscription: false,
+    status: false,
+  };
+  if(!labelerCdnData.status) return oldData;
+  oldData.status = data.status;
+  oldData.subscription = !!data.subscription.isActive;
+
+  let count = 1;
+
+  for (const el of data.badges) {
+    if(!el.isActivated) continue;
+    let svgElement = "";
+    if (el.svgToStoreFront && el.svgUrl) {
+      svgElement = await svgBlobUrl(el.svgUrl, el.style.svgStyle);
+    }
+    const isPercentage = el.style.type === "percentage";
+    const postFix = isPercentage ? "%" : "px";
+    let margin = "";
+    Object.keys(el.style.margin).forEach((key) => {
+      if (typeof el.style.margin[key] === "number") {
+        margin += `${key}:${el.style.margin[key]}${postFix};`;
+      } else {
+        margin += `${key}:${el.style.margin[key]};`;
+      }
+    });
+
+    oldData[`badgeLabel${count}`] = {
+      type: "badge",
+      id: count,
+      rule: ruleGenerator(el.rules),
+      selectedPages: el.selectedPages,
+      dynamic: {
+        to: el.options.percentageInBetweenForSaleOn.max,
+        from: el.options.percentageInBetweenForSaleOn.min,
+        status: el.options.percentageInBetweenForSaleOn.status,
+      },
+      schedule: {
+        ...el.rules.scheduler,
+        start: convertToSpecifiedFormat(
+          el.rules.scheduler.startDate,
+          el.rules.scheduler.startTime
+        ),
+        end: convertToSpecifiedFormat(
+          el.rules.scheduler.endDate,
+          el.rules.scheduler.endTime
+        ),
+      },
+      status: el.isActivated,
+      styleUpdated: {
+        margin,
+        width: el.style.width + postFix,
+        height: el.style.aspectRatio ? "auto" : el.style.height + postFix,
+        aspectRatio: el.style.aspectRatio,
+        animation: el.style.animation,
+        angle: el.style.angle,
+        opacity: el.style.opacity,
+      },
+      imagePath: svgElement || "https://cdn.labeler.apps.acowebs.com/" + el.imageUrl,
+      timer: {
+        status: false,
+        endDate: "2023-10-01",
+        endTime: "23:59",
+        startDate: "2023-08-01",
+        startTime: "00:00",
+        countdownOver: true,
+      },
+      announcement: null,
+      countryRestriction: {
+        type:
+          el.rules.countryRestriction.includedCountry.length > 0
+            ? "include"
+            : "exclude",
+        status: el.rules.selected.includes("countryRestriction"),
+        countries:
+          el.rules.countryRestriction.includedCountry.length > 0
+            ? el.rules.countryRestriction.includedCountry
+            : el.rules.countryRestriction.excludedCountry,
+      },
+      products: [],
+    };
+    count++;
+  }
+
+  for (const el of data.labels) {
+    if(!el.isActivated) continue;
+    let svgElement = "";
+    if (el.svgToStoreFront && el.svgUrl) {
+      svgElement = await svgBlobUrl(el.svgUrl, el.style.svgStyle);
+    }
+    const isPercentage = el.style.type === "percentage";
+    const postFix = isPercentage ? "%" : "px";
+    oldData[`badgeLabel${count}`] = {
+      id: count,
+      rule: ruleGenerator(el.rules),
+      selectedPages: el.selectedPages,
+      type: "label",
+      dynamic: {
+        to: el.options.percentageInBetweenForSaleOn.max,
+        from: el.options.percentageInBetweenForSaleOn.min,
+        status: el.options.percentageInBetweenForSaleOn.status,
+      },
+      schedule: {
+        ...el.rules.scheduler,
+        start: convertToSpecifiedFormat(
+          el.rules.scheduler.startDate,
+          el.rules.scheduler.startTime
+        ),
+        end: convertToSpecifiedFormat(
+          el.rules.scheduler.endDate,
+          el.rules.scheduler.endTime
+        ),
+      },
+      status: el.isActivated,
+      styleUpdated: {
+        position: el.style.position,
+        width: el.style.width + postFix,
+        height: el.style.aspectRatio ? "auto" : el.style.height + postFix,
+        aspectRatio: el.style.aspectRatio,
+        animation: el.style.animation,
+        angle: el.style.angle,
+        opacity: el.style.opacity,
+        alignment: el.style.alignment
+      },
+      imagePath: svgElement || "https://cdn.labeler.apps.acowebs.com/" + el.imageUrl,
+      timer: {
+        endDate: "2023-08-28",
+        endTime: "23:59",
+        startDate: "2023-06-27",
+        startTime: "00:00",
+        countdownOver: true,
+        status: false,
+      },
+      announcement: null,
+      countryRestriction: {
+        type:
+          el.rules.countryRestriction.includedCountry.length > 0
+            ? "include"
+            : "exclude",
+        status: el.rules.selected.includes("countryRestriction"),
+        countries:
+          el.rules.countryRestriction.includedCountry.length > 0
+            ? el.rules.countryRestriction.includedCountry
+            : el.rules.countryRestriction.excludedCountry,
+      },
+      products: [],
+    };
+    count++;
+  }
+
+  for (const el of data.announcements) {
+    if(!el.isActivated) continue;
+    let svgElement = "";
+    if (el.svgToStoreFront && el.svgUrl) {
+      svgElement = await svgBlobUrl(el.svgUrl, el.style.svgStyle);
+    }
+    const isPercentage = el.style.type === "percentage";
+    const postFix = isPercentage ? "%" : "px";
+    let margin = "";
+    Object.keys(el.style.margin).forEach((key) => {
+      if (typeof el.style.margin[key] === "number") {
+        margin += `${key}:${el.style.margin[key]}${postFix};`;
+      } else {
+        margin += `${key}:${el.style.margin[key]};`;
+      }
+    });
+    oldData[`badgeLabel${count}`] = {
+      id: count,
+      rule: {
+        key: "",
+        type: "none",
+      },
+      selectedPages: el.selectedPages,
+      type: "announcement",
+      dynamic: {
+        to: 100,
+        from: 0,
+        status: false,
+      },
+      schedule: {
+        status: false,
+      },
+      status: el.isActivated,
+      styleUpdated: {
+        margin,
+        width: el.style.width + postFix,
+        height: el.style.aspectRatio ? "auto" : el.style.height + postFix,
+        aspectRatio: el.style.aspectRatio,
+        animation: el.style.animation,
+        angle: el.style.angle,
+        opacity: el.style.opacity,
+      },
+      imagePath: svgElement || "https://cdn.labeler.apps.acowebs.com/" + el.imageUrl,
+      timer: null,
+      announcement: el.properties,
+      countryRestriction: {
+        type:
+          el.rules.countryRestriction.includedCountry.length > 0
+            ? "include"
+            : "exclude",
+        status: el.rules.selected.includes("countryRestriction"),
+        countries:
+          el.rules.countryRestriction.includedCountry.length > 0
+            ? el.rules.countryRestriction.includedCountry
+            : el.rules.countryRestriction.excludedCountry,
+      },
+      products: [],
+    };
+    count++;
+  }
+
+  for (const el of data.trustBadges) {
+    if(!el.isActivated) continue;
+    oldData[`badgeLabel${count}`] = {
+      id: count,
+      rule: {
+        key: "allProducts",
+        type: "none",
+      },
+      selectedPages: ["products"],
+      type: "trust",
+      dynamic: null,
+      trust: {
+        header: el.header,
+        icons: el.imageUrls.map(
+          (el) => "https://cdn.labeler.apps.acowebs.com/" + el
+        ),
+      },
+      schedule: {
+        status: false,
+      },
+      status: el.isActivated,
+      styleUpdated: {
+        width: el.style.width + "px",
+        animation: el.style.animation,
+        textAlign: el.style.textAlign,
+        badgeType: el.style.badgeType,
+      },
+      products: [],
+    };
+    count++;
+  }
+  return oldData;
+};

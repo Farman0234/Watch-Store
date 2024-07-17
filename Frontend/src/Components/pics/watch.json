@@ -1,0 +1,150 @@
+[
+    {
+        "id":1,
+        "name":"Rolex",
+        "title":"The Rolex collection offers a wide range of prestigious",
+        "price":"50$",
+        "category":"Best Offer",
+        "image":"./Men 7.jpeg"
+    },
+    
+    {
+        "id":2,
+        "name":"Sveston",
+        "title":"The Rolex collection offers a wide range of prestigious",
+        "price":"100$",
+        "category":"Best Offer",
+        "image":"./Watch10.png"
+    },
+    
+    {
+        "id":3,
+        "name":"Rado",
+        "title":"The Rolex collection offers a wide range of prestigious",
+        "price":"150$",
+        "category":"Best Offer",
+        "image":"./Watch 3.png"
+    },
+    
+    {
+        "id":4,
+        "name":"Casio",
+        "title":"The Rolex collection offers a wide range of prestigious",
+        "price":"50$",
+        "category":"Best Offer",
+        "image":"./Watch 4.png"
+    },
+    
+    {
+        "id":5,
+        "name":"Datejust",
+        "title":"The Rolex collection offers a wide range of prestigious",
+        "price":"100$",
+        "category":"Best Offer",
+        "image":"./Watch 5.png"
+    },
+    {
+        "id":6,
+        "name":"Casio",
+        "title":"The Rolex collection offers a wide range of prestigious",
+        "price":"300$",
+        "category":"Best Offer",
+        "image":"./Men.webp"
+    },
+    {
+        "id":7,
+        "name":"Ferrier",
+        "title":"The Rolex collection offers a wide range of prestigious",
+        "price":"500$",
+        "category":"Best Offer",
+        "image":"./sveston.webp"
+    },
+    {
+        "id":8,
+        "name":"Puma",
+        "title":"The Rolex collection offers a wide range of prestigious",
+        "price":"100$",
+        "category":"Best Offer",
+        "image":"./Watch 9.png"
+    },
+    {
+        "id":9,
+        "name":"GUCCI",
+        "title":"The Rolex collection offers a wide range of prestigious",
+        "price":"100$",
+        "category":"Best Offer",
+        "image":"./Watch9.webp"
+    },
+    {
+        "id":10,
+        "name":"Hublot",
+        "title":"The Rolex collection offers a wide range of prestigious",
+        "price":"100$",
+        "category":"Best Offer",
+        "image":"./Watch10.png"
+    },
+    {
+        "id":11,
+        "name":"SEIKO",
+        "title":"The Rolex collection offers a wide range of prestigious",
+        "price":"100$",
+        "category":"Best Offer",
+        "image":"./Side watch.webp"
+    },
+    {
+        "id":12,
+        "name":"ORIS",
+        "title":"The Rolex collection offers a wide range of prestigious",
+        "price":"100$",
+        "category":"Best Offer",
+        "image":"./Black watch.webp"
+    },
+    {
+        "id":13,
+        "name":"Tissot",
+        "title":"The Rolex collection offers a wide range of prestigious",
+        "price":"100$",
+        "category":"Best Offer",
+        "image":"./Watches.jpeg"
+    },
+    {
+        "id":14,
+        "name":"Omega",
+        "title":"The Rolex collection offers a wide range of prestigious",
+        "price":"100$",
+        "category":"Best Offer",
+        "image":"./Watchp.webp"
+    },
+    {
+        "id":15,
+        "name":"Rolex",
+        "title":"The Rolex collection offers a wide range of prestigious",
+        "price":"100$",
+        "category":"Best Offer",
+        "image":"./Watch.webp"
+    },
+    {
+        "id":16,
+        "name":"Rolex",
+        "title":"The Rolex collection offers a wide range of prestigious",
+        "price":"100$",
+        "category":"Best Offer",
+        "image":"./black-watch.jpg"
+    },
+    {
+        "id":17,
+        "name":"Rolex",
+        "title":"The Rolex collection offers a wide range of prestigious",
+        "price":"100$",
+        "category":"Best Offer",
+        "image":"./Sports.webp"
+    },
+    {
+        "id":18,
+        "name":"Rolex",
+        "title":"The Rolex collection offers a wide range of prestigious",
+        "price":"100$",
+        "category":"Best Offer",
+        "image":"./Watch12.webp"
+    }
+]

@@ -1,0 +1,62 @@
+[
+    {
+        "id":1,
+        "name":"Rolex",
+        "title":"The Rolex collection offers a wide range of prestigious",
+        "price":"50$",
+        "category":"Discount",
+        "image":"./Men 7.jpeg"
+    },
+    
+    {
+        "id":2,
+        "name":"CK watch",
+        "title":"The Rolex collection offers a wide range of prestigious",
+        "price":"100$",
+        "category":"Discount",
+        "image":"./Watch10.png"
+    },
+    
+    {
+        "id":3,
+        "name":"Rado",
+        "title":"The Rolex collection offers a wide range of prestigious",
+        "price":"150$",
+        "category":"Discount",
+        "image":"./Watch 3.png"
+    },
+    
+    {
+        "id":4,
+        "name":"Casio",
+        "title":"The Rolex collection offers a wide range of prestigious",
+        "price":"50$",
+        "category":"Discount",
+        "image":"./Watch 4.png"
+    },
+    
+    {
+        "id":5,
+        "name":"Datejust",
+        "title":"The Rolex collection offers a wide range of prestigious",
+        "price":"100$",
+        "category":"Discount",
+        "image":"./Watch 5.png"
+    },
+    {
+        "id":6,
+        "name":"Submariner",
+        "title":"The Rolex collection offers a wide range of prestigious",
+        "price":"300$",
+        "category":"Discount",
+        "image":"./Men.webp"
+    },
+    {
+        "id":7,
+        "name":"Ferrier",
+        "title":"The Rolex collection offers a wide range of prestigious",
+        "price":"500$",
+        "category":"Discount",
+        "image":"./sveston.webp"
+    }
+]
