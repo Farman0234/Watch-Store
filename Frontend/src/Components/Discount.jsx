@@ -1,15 +1,31 @@
 /* eslint-disable react/no-unescaped-entities */
 /* eslint-disable react/jsx-no-undef */
 // eslint-disable-next-line no-unused-vars
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import "slick-carousel/slick/slick.css";
 import "slick-carousel/slick/slick-theme.css";
-import list from '../../public/list.json';
+// import list from '../Components/pics/watch.json';
 import Slider from "react-slick";
 import Carts from './Carts';
-
+import axios from 'axios';
 function Discount() {
-  const filterData = list.filter((data) => data.category === "Discount");
+
+  const [watch,setWatch]=useState([])
+  useEffect(()=>{
+    const getWatch= async()=>{
+      try{
+       const res = await axios.get('http://localhost:5217/get');
+       console.log(res.data)
+       setWatch(res.data.filter((data) => data.category === "Discount"))
+      }catch (error){
+        console.log(error);
+      }
+    }
+    getWatch();
+  },[]);
+
+  
+  // const filterData = list.filter((data) => data.category === "Discount");
 
   var settings = {
     dots: true,
@@ -55,7 +71,7 @@ function Discount() {
       </div>
       <div>
         <Slider {...settings}>
-          {filterData.map((item) => (
+          {watch.map((item) => (
             <Carts item={item} key={item.id} />
           ))}
         </Slider>

@@ -1,6 +1,6 @@
 /* eslint-disable react/no-unescaped-entities */
 import React, { useEffect, useState, useRef } from 'react';
-import img from './pics/contact.svg';
+import img from './Accet/pics/contact.svg';
 import { useForm, ValidationError } from '@formspree/react';
 
 function Contact() {

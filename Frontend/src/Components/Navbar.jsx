@@ -2,9 +2,13 @@
 // eslint-disable-next-line no-unused-vars
 import React, { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom';
-import Login from './Login';
+import { useAuth } from './Context/Auth';
+import Logout from './Logout';
 
 function Navbar() {
+  const [authUser, setAuthUser] = useAuth();
+  console.log(authUser);
+
   const [theme, setTheme] = useState(localStorage.getItem("theme") ? localStorage.getItem('theme') : 'light');
   const element = document.documentElement;
 
@@ -90,11 +94,46 @@ const navItems =(
   
 </label>
   </div>
-  <div>
-    <Link to="/Login" className="bg-black text-white px-3 py-2  rounded-md hover-bg-slate-800 duration-300 cursor-pointer" > 
-      Login</Link>
+  <div className="dropdown dropdown-end">
+      <div tabIndex={0} role="button" className="btn btn-ghost btn-circle">
+        <div className="indicator">
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            className="h-6 w-6"
+            fill="none"
+            viewBox="0 0 24 24"
+            stroke="currentColor">
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth="2"
+              d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z" />
+          </svg>
+          <span className="badge badge-sm indicator-item">1</span>
+        </div>
+      </div>
+      <div
+        tabIndex={0}
+        className="card card-compact dropdown-content bg-base-100 z-[1] mt-3 w-52 shadow">
+        <div className="card-body">
+          <div className="card-actions">
+            <Link to="/cart" className="btn btn-primary btn-block">View cart</Link>
+          </div>
+        </div>
+      </div>
+    </div>
+   {
+      authUser?(<Logout/>):(
+      <div>
     
-  </div>
+    <Link to="/Login" className="bg-black text-white px-4 py-2 rounded-xl hover-bg-slate-800 duration-300 cursor-pointer" > 
+    Login</Link>
+      </div>
+    )} 
+
+
+
+
 </div>
 </div>
 </div>

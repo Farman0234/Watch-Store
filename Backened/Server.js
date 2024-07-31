@@ -2,18 +2,35 @@ const express = require('express');
 const app = express();
 const jwt = require('jsonwebtoken');
 const bodyParser = require('body-parser');
-
+const cors = require('cors')
 // Parse application/x-www-form-urlencoded
 app.use(bodyParser.urlencoded({ extended: false }));
 // Parse application/json
 app.use(bodyParser.json());
 
+
+app.use(cors({
+    origin: 'http://localhost:5173'  // Adjust based on your frontend URL
+}));
+
+app.use(cors());
 // Database Connection
 require('./Database/database');
 
 // Routes
 const userRoute = require('./Routes/Route');
 app.use('/user', userRoute);
+
+//Carts api//
+const WatchRoute = require('./Routes/Watchroute');
+app.use('/get',WatchRoute);
+
+
+const authRoutes = require('./Routes/Route');
+app.use('/user', authRoutes);
+
+const productRoutes = require('./Routes/Productroute');
+app.use('/api/products', productRoutes);
 
 // "secretKey" is coming from the "userController"
 // "set" is a method used to store a value

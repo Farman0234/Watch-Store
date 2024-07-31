@@ -1,5 +1,5 @@
     import React from 'react'
-    import img from './pics/Store1.jpg';
+    import img from './Accet/pics/Store1.jpg';
     function About() {
       return (
     <div className="container mx-auto px-4 md:px-8 py-12 dark:bg-gray-900 dark:text-white">

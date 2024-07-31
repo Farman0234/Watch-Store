@@ -9,7 +9,7 @@ function Carts({ item })
     <>
     <div className='mt-7 my-3' >
     <div className="card w-92 bg-base-90 ml-4 mr-2 shadow-xl md:hover:scale-105 duration-200 cursor-pointer hover:scale-105 duration-200 cursor-pointer  dark:bg-slate-900 dark:text-white dark:border">
-  <figure><img src={item.image} alt="Shoes" /></figure>
+<Link to ={`/product/${item.id}`} ><figure><img src={item.image} alt="Shoes" /></figure></Link>
   <div className="card-body">
     <h2 className="card-title">
       {item.name}
@@ -19,7 +19,7 @@ function Carts({ item })
     <div className="card-actions justify-between">
       <div className="badge badge-outline">{item.price}</div>
       <div> 
-      <Link to="/Product"><div className="badge badge-outline cursor-pointer py-3 px-2 hover:bg-pink-500 duration-200 hover:text-white ">Buy Now</div></Link>
+      <Link to={`/product/${item.id}`}><div className="badge badge-outline cursor-pointer py-3 px-2 hover:bg-pink-500 duration-200 hover:text-white ">Buy Now</div></Link>
       </div>
     </div>
   </div>
